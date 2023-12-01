@@ -1,32 +1,43 @@
 <?php
 
-// src/Controller/ProductController.php
+// src/Controller/imageController.php
 namespace App\Controller;
 
 use App\Entity\Image;
+use App\Repository\ImageRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Entity;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 // ...
 
 class ImageController extends AbstractController
 {
-    #[Route('/index', name: 'product_show')]
-    public function show(EntityManagerInterface $entityManager): Response
+    #[Route('/', name: 'home')]
+    public function index(EntityManagerInterface $em): Response
     {
-        $image = $entityManager->getRepository(Image::class)->findAll;
+        $repository = $em->getRepository(Image::class);
+        $images = $repository->findAll();
 
-        /* if (!$image) {
-            throw $this->createNotFoundException(
-                'No image found'
-            );
+        //dd($images);
+
+        //$images = $imageRepository->findAll();
+    
+        return $this->render('index.html.twig', [
+            'title' => $images[0]->getTitle(),
+            'img' => $images[0]->getImg(),
+            'date' => $images[0]->getDate()->format('Y-m-d H:i:s')
+            
+        ]);
+
+        /* foreach( $images as $singleImage ) {
+            return $this->render('index.html.twig', [
+                'title' => $this->$singleImage->getTitle(),
+                
+            ]);
         } */
-
-        return new Response('Check out this great product: '.$image->getName());
-
-        // or render a template
-        // in the template, print things with {{ product.name }}
-        // return $this->render('product/show.html.twig', ['product' => $product]);
+        
     }
 }
 
