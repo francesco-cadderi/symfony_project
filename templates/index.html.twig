@@ -1,3 +1,43 @@
-<h1>
-    {{ title }} {{ img }} {{ date }}
-</h1>
+{% if bottone == true %}
+    <div style="display: flex; flex-wrap: wrap";>
+        {% for key, entity in repository %}
+            <div style="margin: 10px; padding: 5px; background-color: D3D3D3";>
+                <h1>{{ titles[key] }}</h1>
+                <div style="height: 200px";>
+                    <img style="height: 100%"; 
+                        alt="Embedded Image" 
+                        src="data:image/png;base64,{{ images[key] }}"/>
+                </div>
+                <p>{{ dates[key] }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Image</th>
+            <th>Date creation</th>
+        </tr>
+        
+        {% for key, entity in repository %}
+            <tr>
+                <td>
+                    <p>{{ titles[key] }}</p>
+                </td>
+                <td>
+                    <img style="height: 100; width: 100"; 
+                            alt="Embedded Image" 
+                            src="data:image/png;base64,{{ images[key] }}"
+                    />  
+                </td>
+                <td>
+                    <p>{{ dates[key] }}</p>
+                </td>
+            </tr>
+        {% endfor %}            
+    </table>
+{% endif %}
+
+
+<button>switch</button>
