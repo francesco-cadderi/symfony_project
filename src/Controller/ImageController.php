@@ -15,20 +15,17 @@ class ImageController extends AbstractController
     {
         $repository = $em->getRepository(Image::class)->findAll();
         
-        $images = array();
+        //$images = array();
         foreach ($repository as $key => $entity) {
             $images[$key] = base64_encode(stream_get_contents($entity->getImg()));
             $titles[$key] = $entity->getTitle();
             $dates[$key] = $entity->getDate()->format('Y-m-d H:i:s');
         }
-
-        $bottone = true;
-    
+        //dd($repository, $images, $titles, $dates);
         return $this->render('index.html.twig', array('repository' => $repository ,
                                                       'images' => $images,
                                                       'titles' => $titles,
-                                                      'dates' => $dates,
-                                                      'bottone' => $bottone
+                                                      'dates' => $dates
                                                     ));
     }
 }

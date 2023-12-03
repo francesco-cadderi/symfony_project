@@ -1,43 +1,154 @@
-{% if bottone == true %}
-    <div style="display: flex; flex-wrap: wrap";>
-        {% for key, entity in repository %}
-            <div style="margin: 10px; padding: 5px; background-color: D3D3D3";>
-                <h1>{{ titles[key] }}</h1>
-                <div style="height: 200px";>
-                    <img style="height: 100%"; 
-                        alt="Embedded Image" 
-                        src="data:image/png;base64,{{ images[key] }}"/>
-                </div>
-                <p>{{ dates[key] }}</p>
-            </div>
-        {% endfor %}
-    </div>
-{% else %}
-    <table>
-        <tr>
-            <th>Title</th>
-            <th>Image</th>
-            <th>Date creation</th>
-        </tr>
-        
-        {% for key, entity in repository %}
-            <tr>
-                <td>
-                    <p>{{ titles[key] }}</p>
-                </td>
-                <td>
-                    <img style="height: 100; width: 100"; 
-                            alt="Embedded Image" 
-                            src="data:image/png;base64,{{ images[key] }}"
-                    />  
-                </td>
-                <td>
+{% set view = app.request.query.get('view') %}
+
+<div id="imageContainer">
+    {% if view == 'grid' %}
+        <div id="gridView" style="display: flex; flex-wrap: wrap";>
+            {% for key, entity in repository %}
+                <div class="imageDiv" style="margin: 10px; padding: 5px; background-color: D3D3D3";>
+                    <h1>{{ titles[key] }}</h1>
+                    <div style="height: 200px";>
+                        <img style="height: 100%"; 
+                             alt="Embedded Image" 
+                             src="data:image/png;base64,{{ images[key] }}"/>
+                    </div>
                     <p>{{ dates[key] }}</p>
-                </td>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <table id="tableView">
+            <tr>
+                <th>Title</th>
+                <th>Image</th>
+                <th>Date creation</th>
             </tr>
-        {% endfor %}            
-    </table>
+            
+            {% for key, entity in repository %}
+                <tr class="imageDiv">
+                    <td>
+                        <p>{{ titles[key] }}</p>
+                    </td>
+                    <td>
+                        <img style="height: 100; width: 100"; 
+                             alt="Embedded Image" 
+                             src="data:image/png;base64,{{ images[key] }}"
+                        />  
+                    </td>
+                    <td>
+                        <p>{{ dates[key] }}</p>
+                    </td>
+                </tr>
+            {% endfor %}            
+        </table>
+    {% endif %}
+</div>
+
+{% if view == 'grid' %}
+    <button><a href="?view=list">change to list</a></button>
+{% else %}
+    <button><a href="?view=grid">change to grid</a></button>
 {% endif %}
+<button id="randomize">Randomizza</button>
+<button id="sort">Ordina</button>
+<input type="text" id="searchInput" placeholder="Inserisci parola chiave" oninput="searchImages()">
 
+<script>
 
-<button>switch</button>
+    //randomizza le immagini visualizzate
+    document.getElementById('randomize').addEventListener('click', function() {
+        var parent = document.getElementById('imageContainer');
+        var gridView = document.getElementById('gridView');
+        var tableView = document.getElementById('tableView');
+        if (gridView) {
+            var divs = Array.from(gridView.getElementsByClassName('imageDiv'));
+            while (divs.length) {
+                gridView.appendChild(divs.splice(Math.floor(Math.random() * divs.length), 1)[0]);
+            }
+        }
+        if (tableView) {
+            var rows = Array.from(tableView.getElementsByClassName('imageDiv'));
+            while (rows.length) {
+                tableView.appendChild(rows.splice(Math.floor(Math.random() * rows.length), 1)[0]);
+            }
+        }
+    });
+
+        var sortMethods = [
+        function(a, b) { return a.title.localeCompare(b.title); },
+        function(a, b) { return b.title.localeCompare(a.title); },
+        function(a, b) { return new Date(b.date) - new Date(a.date); },
+        function(a, b) { return new Date(a.date) - new Date(b.date); }
+    ];
+    var currentSortMethod = 0;
+
+    //ordinamento a-z  recente/meno recente
+    document.getElementById('sort').addEventListener('click', function() {
+        var parent = document.getElementById('imageContainer');
+        var gridView = document.getElementById('gridView');
+        var tableView = document.getElementById('tableView');
+        var elements, sortFunction;
+
+        if (gridView) {
+            elements = Array.from(gridView.getElementsByClassName('imageDiv'));
+            sortFunction = sortMethods[currentSortMethod];
+            elements.sort(function(a, b) {
+                var titleA = a.getElementsByTagName('h1')[0].innerText;
+                var dateA = new Date(a.getElementsByTagName('p')[0].innerText);
+                var titleB = b.getElementsByTagName('h1')[0].innerText;
+                var dateB = new Date(b.getElementsByTagName('p')[0].innerText);
+                return sortFunction({title: titleA, date: dateA}, {title: titleB, date: dateB});
+            });
+            elements.forEach(function(element) {
+                gridView.appendChild(element);
+            });
+        }
+        if (tableView) {
+            elements = Array.from(tableView.getElementsByClassName('imageDiv'));
+            sortFunction = sortMethods[currentSortMethod];
+            elements.sort(function(a, b) {
+                var titleA = a.getElementsByTagName('p')[0].innerText;
+                var dateA = new Date(a.getElementsByTagName('p')[1].innerText);
+                var titleB = b.getElementsByTagName('p')[0].innerText;
+                var dateB = new Date(b.getElementsByTagName('p')[1].innerText);
+                return sortFunction({title: titleA, date: dateA}, {title: titleB, date: dateB});
+            });
+            elements.forEach(function(element) {
+                tableView.appendChild(element);
+            });
+        }
+
+        currentSortMethod = (currentSortMethod + 1) % sortMethods.length;
+    });
+
+    //ricerca dinamica sull'input
+    function searchImages() {
+        var keyword = document.getElementById('searchInput').value.toLowerCase();
+        var parent = document.getElementById('imageContainer');
+        var gridView = document.getElementById('gridView');
+        var tableView = document.getElementById('tableView');
+        var elements;
+
+        if (gridView) {
+            elements = Array.from(gridView.getElementsByClassName('imageDiv'));
+            elements.forEach(function(element) {
+                var title = element.getElementsByTagName('h1')[0].innerText.toLowerCase();
+                if (title.includes(keyword)) {
+                    element.style.display = 'block';
+                } else {
+                    element.style.display = 'none';
+                }
+            });
+        }
+        if (tableView) {
+            elements = Array.from(tableView.getElementsByClassName('imageDiv'));
+            elements.forEach(function(element) {
+                var title = element.getElementsByTagName('p')[0].innerText.toLowerCase();
+                if (title.includes(keyword)) {
+                    element.style.display = 'table-row';
+                } else {
+                    element.style.display = 'none';
+                }
+            });
+        }
+    }
+</script>
