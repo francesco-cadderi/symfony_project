@@ -3,13 +3,15 @@
 <div id="imageContainer">
     {% if view == 'grid' %}
         <div id="gridView" style="display: flex; flex-wrap: wrap";>
-            {% for key, entity in repository %}
+            {% for key, entity in extractedItems %}
                 <div class="imageDiv" style="margin: 10px; padding: 5px; background-color: D3D3D3";>
                     <h1>{{ titles[key] }}</h1>
                     <div style="height: 200px";>
-                        <img style="height: 100%"; 
-                             alt="Embedded Image" 
-                             src="data:image/png;base64,{{ images[key] }}"/>
+                        <img 
+                            style="height: 100%"; 
+                            alt="Embedded Image" 
+                            src="data:image/png;base64,{{ images[key] }}"
+                        />
                     </div>
                     <p>{{ dates[key] }}</p>
                 </div>
@@ -20,18 +22,19 @@
             <tr>
                 <th>Title</th>
                 <th>Image</th>
-                <th>Date creation</th>
+                <th>Created</th>
             </tr>
             
-            {% for key, entity in repository %}
+            {% for key, entity in extractedItems %}
                 <tr class="imageDiv">
                     <td>
                         <p>{{ titles[key] }}</p>
                     </td>
                     <td>
-                        <img style="height: 100; width: 100"; 
-                             alt="Embedded Image" 
-                             src="data:image/png;base64,{{ images[key] }}"
+                        <img 
+                            style="height: 100; width: 100"; 
+                            alt="Embedded Image" 
+                            src="data:image/png;base64,{{ images[key] }}"
                         />  
                     </td>
                     <td>
@@ -50,7 +53,9 @@
 {% endif %}
 <button id="randomize">Randomizza</button>
 <button id="sort">Ordina</button>
-<input type="text" id="searchInput" placeholder="Inserisci parola chiave" oninput="searchImages()">
+<input type="text" id="searchInput" placeholder="Cerca per nome" oninput="searchImages()">
+
+<div class="navigation">{{ knp_pagination_render(pagination) }}</div>
 
 <script>
 
@@ -73,7 +78,8 @@
         }
     });
 
-        var sortMethods = [
+    //ordinamento a-z  recente/meno recente
+    var sortMethods = [
         function(a, b) { return a.title.localeCompare(b.title); },
         function(a, b) { return b.title.localeCompare(a.title); },
         function(a, b) { return new Date(b.date) - new Date(a.date); },
@@ -81,7 +87,6 @@
     ];
     var currentSortMethod = 0;
 
-    //ordinamento a-z  recente/meno recente
     document.getElementById('sort').addEventListener('click', function() {
         var parent = document.getElementById('imageContainer');
         var gridView = document.getElementById('gridView');
